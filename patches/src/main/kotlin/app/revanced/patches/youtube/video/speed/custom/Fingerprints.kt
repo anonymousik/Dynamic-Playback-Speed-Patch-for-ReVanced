@@ -1,50 +1,74 @@
 package app.revanced.patches.youtube.video.speed.custom
 
-import app.revanced.patcher.fingerprint
-import app.revanced.util.literal
+import app.revanced.patcher.fingerprint.MethodFingerprint
+import app.revanced.patcher.extensions.or
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
-internal val getOldPlaybackSpeedsFingerprint = fingerprint {
-    parameters("[L", "I")
-    strings("menu_item_playback_speed")
-}
-
-internal val showOldPlaybackSpeedMenuFingerprint = fingerprint {
-    literal { speedUnavailableId }
-}
-
-internal val showOldPlaybackSpeedMenuExtensionFingerprint = fingerprint {
-    custom { method, _ -> method.name == "showOldPlaybackSpeedMenu" }
-}
-
-internal val speedArrayGeneratorFingerprint = fingerprint {
-    accessFlags(AccessFlags.PUBLIC, AccessFlags.STATIC)
-    returns("[L")
-    parameters("Lcom/google/android/libraries/youtube/innertube/model/player/PlayerResponseModel;")
-    opcodes(
-        Opcode.IF_NEZ,
-        Opcode.SGET_OBJECT,
-        Opcode.GOTO_16,
-        Opcode.INVOKE_INTERFACE,
-        Opcode.MOVE_RESULT_OBJECT,
+internal object SpeedControlGestureFingerprint : MethodFingerprint(
+    returnType = "V",
+    access = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf(),
+    opcodes = listOf(
         Opcode.IGET_OBJECT,
-    )
-    strings("0.0#")
-}
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT,
+        Opcode.IF_EQZ
+    ),
+    strings = listOf("menu_item_playback_speed"),
+    customFingerprint = { methodDef, _ ->
+        methodDef.definingClass.endsWith("/YouTubePlayerOverlay;") &&
+        methodDef.name == "onSpeedGestureDetected"
+    }
+)
 
-internal val speedLimiterFingerprint = fingerprint {
-    accessFlags(AccessFlags.PUBLIC, AccessFlags.FINAL)
-    returns("V")
-    parameters("F")
-    opcodes(
+internal object SpeedResetFingerprint : MethodFingerprint(
+    returnType = "V",
+    access = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf(),
+    opcodes = listOf(
+        Opcode.IGET_OBJECT,
+        Opcode.CONST_HIGH16,
+        Opcode.INVOKE_VIRTUAL
+    ),
+    customFingerprint = { methodDef, _ ->
+        methodDef.definingClass.endsWith("/YouTubePlayerOverlay;") &&
+        methodDef.name == "onSpeedGestureReleased"
+    }
+)
+
+internal object SpeedValueFingerprint : MethodFingerprint(
+    returnType = "F",
+    access = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf(),
+    opcodes = listOf(
+        Opcode.IGET,
+        Opcode.RETURN
+    ),
+    customFingerprint = { methodDef, _ ->
+        methodDef.definingClass.endsWith("/YouTubePlayerController;") &&
+        methodDef.name == "getPlaybackSpeed"
+    }
+)
+
+internal object SpeedLimiterFingerprint : MethodFingerprint(
+    returnType = "V",
+    access = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf("F"),
+    opcodes = listOf(
         Opcode.INVOKE_STATIC,
         Opcode.MOVE_RESULT,
         Opcode.IF_EQZ,
         Opcode.CONST_HIGH16,
         Opcode.GOTO,
         Opcode.CONST_HIGH16,
-        Opcode.CONST_HIGH16,
-        Opcode.INVOKE_STATIC,
+        Opcode.INVOKE_STATIC
     )
-}
+)
+
+internal object SpeedMenuFingerprint : MethodFingerprint(
+    returnType = "V",
+    access = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf("Landroid/view/View;"),
+    strings = listOf("menu_item_playback_speed")
+)
