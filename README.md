@@ -108,11 +108,23 @@ Project Link: [https://github.com/anonymousik/Dynamic-Playback-Speed-Patch-for-R
 
 ## 📝 Changelog
 
+
+v0.0.2 Changes:
+- Added smooth speed transitions
+- Improved settings validation
+- Fixed edge case speed calculations
+- Updated YouTube compatibility
+- Optimized memory usage
+- Added proper error handling
+
+
+```
 ### v0.0.1
 * Initial release
 * Basic speed control functionality
 * Configuration options
 * YouTube integration
+```
 
 ## 🔄 Integration
 
